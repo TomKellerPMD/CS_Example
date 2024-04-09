@@ -18,7 +18,7 @@ using PMDLibrary;
 
 class Memory
     {
-        public PMD.PMDMemory memptr;
+    public PMD.PMDMemory memptr;
         public void Close()
         {
             memptr.Close();
@@ -69,8 +69,17 @@ class BUFFER
     public BUFFER(PMD.PMDDevice dev, PMD.PMDAxis m_axis, short m_bufferID, uint m_length)
     {
 
-        if(dev.DeviceType==PMD.PMDDeviceType.ResourceProtocol) DPmemory = new DPRAM(dev);
-        if(dev.DeviceType == PMD.PMDDeviceType.MotionProcessor) SPmemory = new SPRAM(dev);
+        if (dev.DeviceType == PMD.PMDDeviceType.ResourceProtocol)
+        {
+            try { DPmemory = new DPRAM(dev); }
+            catch
+            {
+                if (DPmemory == null) SPmemory = new SPRAM(dev);
+            }
+        }
+        
+        else if (dev.DeviceType == PMD.PMDDeviceType.MotionProcessor) SPmemory = new SPRAM(dev);
+        
         bufferID = m_bufferID;
         length = m_length;  //dwords
         axis = m_axis;

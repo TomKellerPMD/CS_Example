@@ -60,8 +60,8 @@ namespace CS_Example
 
 
                 devMC = new PMD.PMDDevice(perTCP, PMD.PMDDeviceType.ResourceProtocol);
-                Axis1 = new PMD.PMDAxis(devMC, PMD.PMDAxisNumber.Axis2);
-                Axis2 = new PMD.PMDAxis(devMC, PMD.PMDAxisNumber.Axis1);
+                Axis1 = new PMD.PMDAxis(devMC, PMD.PMDAxisNumber.Axis1);
+                Axis2 = new PMD.PMDAxis(devMC, PMD.PMDAxisNumber.Axis2);
 
                 ushort gvfamily = 0, gvnaxes = 0, gvnchips = 0, gvcustom = 0, gvmajor = 0, gvminor = 0;
                 PMD.PMDMotorTypeVersion mtype = 0;
