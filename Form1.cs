@@ -28,12 +28,14 @@ using System.Text;
 using System.Windows.Forms;
 using System.Threading;
 using PMDLibrary;
+using System.Runtime.Remoting.Messaging;
+using static PMDLibrary.PMD;
 
 namespace CS_Example
 {
     public partial class Form1 : Form
     {
-        static PMD.PMDPeripheral perTCP, perSER;
+        static PMD.PMDPeripheral CommHandle;
         static PMD.PMDDevice devMC;
         public static volatile PMD.PMDAxis Axis1, Axis2;
         public bool timerstop = false;
@@ -53,13 +55,26 @@ namespace CS_Example
                                     
             try
             {
-                perTCP = new PMD.PMDPeripheralTCP(System.Net.IPAddress.Parse(ipaddress), 40100, 1000);
-                //perSER = new PMD.PMDPeripheralCOM(2, 57600, PMD.PMDSerialParity.None, PMD.PMDSerialStopBits.SerialStopBits1);
-                //perTCP = new PMD.PMDPeripheralTCP(System.Net.IPAddress.Parse(ipaddress), 1234, 1000);    // non-PRP port used for generic User Packets.
+                PMDInterfaceType Interface = PMDInterfaceType.CAN;
 
+                if (Interface == PMD.PMDInterfaceType.TCP)
+                {
+                    CommHandle = new PMD.PMDPeripheralTCP(System.Net.IPAddress.Parse(ipaddress), 40100, 1000);
 
+                }
+                else if (Interface == PMD.PMDInterfaceType.Serial)
+                {
+                    CommHandle = new PMD.PMDPeripheralCOM(2, 57600, PMD.PMDSerialParity.None, PMD.PMDSerialStopBits.SerialStopBits1);
+                }
+                else if (Interface == PMD.PMDInterfaceType.CAN)
+                {
 
-                devMC = new PMD.PMDDevice(perTCP, PMD.PMDDeviceType.ResourceProtocol);
+                    CommHandle = new PMD.PMDPeripheralCAN(0x600, 0x580, 0x100);
+                }
+
+                //devMC = new PMD.PMDDevice(CommHandle, PMD.PMDDeviceType.ResourceProtocol);   // For N-series and Prodigy 
+                devMC = new PMD.PMDDevice(CommHandle, PMD.PMDDeviceType.MotionProcessor);       // For all Magellan and Juno ICs
+
                 Axis1 = new PMD.PMDAxis(devMC, PMD.PMDAxisNumber.Axis1);
                 Axis2 = new PMD.PMDAxis(devMC, PMD.PMDAxisNumber.Axis2);
 
@@ -367,7 +382,7 @@ namespace CS_Example
             if ((IOobject == null) == false) IOobject.Close();
             if((nvramobj==null)==false) nvramobj.Close();
             if((devMC==null)==false) devMC.Close();
-            if((perTCP == null) == false) perTCP.Close();
+            if((CommHandle == null) == false) CommHandle.Close();
             this.Close();
         }
 
