@@ -5,6 +5,7 @@
 // There are no licensing restrictions associated with this example.
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,8 @@ class PMDSetup
         {
             try
             {
+
+               
 
                 axis.SampleTime = 256;
                 axis.SPIMode = 0;
@@ -214,7 +217,7 @@ class PMDSetup
             return PMD.PMDResult.ERR_OK;
         }
 
-    public void DoNSeriesSetup(PMD.PMDAxis axis)
+    public void DoNSeriesBLDCSetup(PMD.PMDAxis axis)
     {
         try
         {
@@ -227,11 +230,11 @@ class PMDSetup
             axis.SettleWindow = 1000;
             axis.TrackingWindow = 0;
             axis.EncoderSource = PMD.PMDEncoderSource.Incremental;
-            if (axis.MotorType == PMD.PMDMotorType.Stepping)
-            {
-                axis.ActualPositionUnits = PMD.PMDActualPositionUnits.Steps;
-                axis.SetEncoderToStepRatio(8000, 12800);
-            }
+            //''if (axis.MotorType == PMD.PMDMotorType.Stepping)
+           // {
+            //    axis.ActualPositionUnits = PMD.PMDActualPositionUnits.Steps;
+            // /   axis.SetEncoderToStepRatio(8000, 12800);
+            //}
             
             // TODO:
             // Position Error Limit is a large value for SW debugging.  Set back to good value for normal operation.
@@ -285,14 +288,8 @@ class PMDSetup
             axis.SetEventAction(PMD.PMDEventActionEvent.MotionError, PMD.PMDEventAction.DisablePositionLoopAndHigherModules);
             axis.SetEventAction(PMD.PMDEventActionEvent.CurrentFoldback, PMD.PMDEventAction.DisableMotorOutputAndHigherModules);
             axis.Update();
-            if (axis.MotorType==PMD.PMDMotorType.BrushlessDC3Phase) axis.InitializePhase();
-
-            if (axis.MotorType == PMD.PMDMotorType.Stepping)
-            {
-                axis.SetCurrent(PMD.PMDCurrent.DriveCurrent, 3000);
-                axis.SetCurrent(PMD.PMDCurrent.HoldingMotorLimit, 3000);
-                axis.SetCurrent(PMD.PMDCurrent.HoldingDelay, 1000);
-            }
+            axis.InitializePhase();
+            if (axis.PhaseInitializeMode == PMD.PMDPhaseInitializeMode.Algorithmic) Thread.Sleep(5000);
             axis.OperatingMode = (ushort)PMD.PMDOperatingMode.AllEnabled;
             axis.ClearPositionError();
             axis.ActualPosition = 0;
@@ -311,7 +308,60 @@ class PMDSetup
 
     }
 
+    public void DoNSeriesStepSetup(PMD.PMDAxis axis)
+    {
+        try
+        {
 
+            axis.SetEventAction(PMD.PMDEventActionEvent.Immediate, PMD.PMDEventAction.DisableMotorOutputAndHigherModules);
+            axis.ResetEventStatus(0);
+            axis.MotorType = PMD.PMDMotorType.Microstep2Phase;
+            axis.PositionErrorLimit = 65535;
+            axis.SettleTime = 50;
+            axis.SettleWindow = 1000;
+            axis.TrackingWindow = 0;
+            axis.EncoderSource = PMD.PMDEncoderSource.Incremental;
+            axis.ActualPositionUnits = PMD.PMDActualPositionUnits.Steps;
+                     
+            axis.MotionCompleteMode = PMD.PMDMotionCompleteMode.ActualPosition;
+            axis.SignalSense = 0x0801;
+            axis.CaptureSource = PMD.PMDCaptureSource.Index;
+            axis.PhaseCounts = 1000;
+            axis.PWMFrequency = 5000;
+            axis.ClearDriveFaultStatus();
+            axis.CurrentControlMode = PMD.PMDCurrentControlMode.CurrentLoop;
+            axis.SetFOC(PMD.PMDFOC.Both, PMD.PMDFOCParameter.Kp, 50);
+            axis.SetFOC(PMD.PMDFOC.Both, PMD.PMDFOCParameter.Ki, 40);
+            axis.SetFOC(PMD.PMDFOC.Both, PMD.PMDFOCParameter.Ilimit, 16000);
+            axis.SetAxisOutMask(PMD.PMDAxisNumber.Axis1, PMD.PMDAxisOutRegister.None, 0x0000, 0x0000);
+            axis.SetEventAction(PMD.PMDEventActionEvent.PositiveLimit, PMD.PMDEventAction.AbruptStopWithPositionErrorClear);
+            axis.SetEventAction(PMD.PMDEventActionEvent.NegativeLimit, PMD.PMDEventAction.AbruptStopWithPositionErrorClear);
+            axis.SetEventAction(PMD.PMDEventActionEvent.MotionError, PMD.PMDEventAction.DisablePositionLoopAndHigherModules);
+            axis.SetEventAction(PMD.PMDEventActionEvent.CurrentFoldback, PMD.PMDEventAction.DisableMotorOutputAndHigherModules);
+            axis.Update();
+            axis.SetCurrent(PMD.PMDCurrent.HoldingMotorLimit, 3000);
+            axis.SetCurrent(PMD.PMDCurrent.HoldingDelay, 1000);
+
+            PMD.PMDOperatingMode opmodemask = PMD.PMDOperatingMode.AxisEnabled | PMD.PMDOperatingMode.MotorOutputEnabled | PMD.PMDOperatingMode.CurrentControlEnabled | PMD.PMDOperatingMode.TrajectoryEnabled;
+            axis.OperatingMode = (ushort) opmodemask;
+            axis.MotorCommand = 3000;
+            axis.ClearPositionError();
+            axis.Update();
+            axis.ActualPosition = 0;
+        }
+
+
+
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            MessageBox.Show("Setup Error!!");
+
+        }
+
+
+
+    }
 
 
 
