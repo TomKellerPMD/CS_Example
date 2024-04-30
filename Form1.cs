@@ -64,12 +64,14 @@ namespace CS_Example
                 }
                 else if (Interface == PMD.PMDInterfaceType.Serial)
                 {
-                    CommHandle = new PMD.PMDPeripheralCOM(2, 57600, PMD.PMDSerialParity.None, PMD.PMDSerialStopBits.SerialStopBits1);
+                    CommHandle = new PMD.PMDPeripheralSerial(2, 57600, PMD.PMDSerialParity.None, PMD.PMDSerialStopBits.SerialStopBits1);
+
+
                 }
                 else if (Interface == PMD.PMDInterfaceType.CAN)
                 {
-
-                    CommHandle = new PMD.PMDPeripheralCAN(0x600, 0x580, 0x100);
+                    uint nodeid = 0;
+                    CommHandle = new PMD.PMDPeripheralCANFD(PMDCANPort.CANPort1, (uint)PMDCANBaud.CANBaud20000, 0x600 + nodeid, 0x580 + nodeid, 0); 
                 }
 
                 //devMC = new PMD.PMDDevice(CommHandle, PMD.PMDDeviceType.ResourceProtocol);   // For N-series and Prodigy 
@@ -84,8 +86,12 @@ namespace CS_Example
                 Axis1.GetVersion(ref gvfamily, ref mtype, ref gvnaxes, ref gvnchips, ref gvcustom, ref gvmajor, ref gvminor);
 
                 PMDSetup mtrsetup = new PMDSetup();
-          //      mtrsetup.DoStepAtlasSetup(Axis2);
-           //     mtrsetup.DoBLDCAtlasSetup(Axis1);
+                //      mtrsetup.DoStepAtlasSetup(Axis2);
+                //     mtrsetup.DoBLDCAtlasSetup(Axis1);
+                //mtrsetup.DoNSeriesBLDCSetup(Axis1);
+                mtrsetup.DoNSeriesStepSetup(Axis1);
+                int test=Axis1.CommandedPosition;
+
 
            //     homeobject = new PMDHoming();
             //    homeobject.HomeSwitch(Axis1);
