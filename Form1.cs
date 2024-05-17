@@ -40,7 +40,6 @@ namespace CS_Example
         public static volatile PMD.PMDAxis Axis1, Axis2;
         public bool timerstop = false;
         static NVRAM nvramobj;
-        static IO IOobject;
         static PMDHoming homeobject;
         delegate void SetCmdPosTextCallback(string text);
         delegate void SetActPosTextCallback(string text);
@@ -55,7 +54,7 @@ namespace CS_Example
                                     
             try
             {
-                PMDInterfaceType Interface = PMDInterfaceType.CAN;
+                PMDInterfaceType Interface = PMDInterfaceType.TCP;
 
                 if (Interface == PMD.PMDInterfaceType.TCP)
                 {
@@ -74,8 +73,8 @@ namespace CS_Example
                     CommHandle = new PMD.PMDPeripheralCANFD(PMDCANPort.CANPort1, (uint)PMDCANBaud.CANBaud20000, 0x600 + nodeid, 0x580 + nodeid, 0); 
                 }
 
-                //devMC = new PMD.PMDDevice(CommHandle, PMD.PMDDeviceType.ResourceProtocol);   // For N-series and Prodigy 
-                devMC = new PMD.PMDDevice(CommHandle, PMD.PMDDeviceType.MotionProcessor);       // For all Magellan and Juno ICs
+                devMC = new PMD.PMDDevice(CommHandle, PMD.PMDDeviceType.ResourceProtocol);   // For N-series and Prodigy 
+                //devMC = new PMD.PMDDevice(CommHandle, PMD.PMDDeviceType.MotionProcessor);       // For all Magellan and Juno ICs
 
                 Axis1 = new PMD.PMDAxis(devMC, PMD.PMDAxisNumber.Axis1);
                 Axis2 = new PMD.PMDAxis(devMC, PMD.PMDAxisNumber.Axis2);
@@ -85,22 +84,29 @@ namespace CS_Example
                                 
                 Axis1.GetVersion(ref gvfamily, ref mtype, ref gvnaxes, ref gvnchips, ref gvcustom, ref gvmajor, ref gvminor);
 
-                PMDSetup mtrsetup = new PMDSetup();
-                //      mtrsetup.DoStepAtlasSetup(Axis2);
-                //     mtrsetup.DoBLDCAtlasSetup(Axis1);
+                //PMDSetup mtrsetup = new PMDSetup();
+                //mtrsetup.DoStepAtlasSetup(Axis2);
+                //mtrsetup.DoBLDCAtlasSetup(Axis1);
                 //mtrsetup.DoNSeriesBLDCSetup(Axis1);
-                mtrsetup.DoNSeriesStepSetup(Axis1);
-                int test=Axis1.CommandedPosition;
-
-
-           //     homeobject = new PMDHoming();
-            //    homeobject.HomeSwitch(Axis1);
+                //mtrsetup.DoNSeriesStepSetup(Axis1);
                 
+
+                //homeobject = new PMDHoming();
+                //homeobject.HomeSwitch(Axis1);
+
                 
+                // Used to access IO space
+                //PMDIO myIO = new PMDIO(devMC);
+                //myIO.WriteDigitalOut(0x40);
+                //ushort test2 = myIO.ReadDigitalInputs();
+              
+
                 StateObjClass StateObj = new StateObjClass();
                 StateObj.TimerCanceled = false;
                 StateObj.SomeValue = 1;
                 System.Threading.TimerCallback TimerDelegate = new System.Threading.TimerCallback(TimerTask);
+                          
+
 
                 // Create a timer that calls a procedure every 500 milliseconds. 
                 // Note: There is no Start method; the timer starts running as soon as  
@@ -109,18 +115,10 @@ namespace CS_Example
                 // Save a reference for Dispose.
                 StateObj.TimerReference = TimerItem;
 
-                // Used to access IO space
-                // IO IOobject = new IO();
-                // IOobject.ReadDigitalInputs(devMC);
-                // IOobject.ReadAnalagInputs(devMC);
-
-             
-                // Used to access Memory space
-                // nvramobj = new NVRAM(devMC);
-                // nvramobj.Write();
-                // nvramobj.Read();
-
-               
+                        
+               // Used to access Memory space
+               //  nvramobj = new NVRAM(devMC);
+                           
                 
                            
                // This is an optional general purpose back ground task 
@@ -385,7 +383,7 @@ namespace CS_Example
         {
            
             timerstop=true;
-            if ((IOobject == null) == false) IOobject.Close();
+            //if ((IO == null) == false) IO.Close();
             if((nvramobj==null)==false) nvramobj.Close();
             if((devMC==null)==false) devMC.Close();
             if((CommHandle == null) == false) CommHandle.Close();
